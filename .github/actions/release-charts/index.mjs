@@ -3,7 +3,7 @@ import { readdirSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const toRelease = JSON.parse(process.env.TO_RELEASE || '[]');
-const registry = (process.env.REGISTRY || 'ghcr.io').replace(/\/$/, '');
+const registry = (process.env.REGISTRY || 'ghcr.io').replace(/\/$/, '').toLowerCase();
 const pkgDir = '/tmp/release-packages';
 const report = [];
 

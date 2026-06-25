@@ -1,7 +1,7 @@
 import { execSync } from 'node:child_process';
 
 const chartsJson = process.argv[2];
-const registry = process.argv[3]?.replace(/\/$/, '') || 'ghcr.io';
+const registry = (process.argv[3]?.replace(/\/$/, '') || 'ghcr.io').toLowerCase();
 
 if (!chartsJson) {
   console.error('No charts_json provided to find-charts-to-release');
