@@ -7,7 +7,7 @@ inputs:
   registry:
     description: OCI registry root (e.g. ghcr.io/org/helm)
     required: false
-    default: "ghcr.io/${{ github.repository_owner }}/helm"
+    default: "ghcr.io/${{ github.repository }}"
 outputs:
   to_release:
     description: JSON array of charts that need to be released
