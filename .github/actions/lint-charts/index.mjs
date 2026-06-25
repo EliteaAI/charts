@@ -27,7 +27,8 @@ for (const chart of charts) {
   }
 
   try {
-    execSync('helm lint .', { cwd: path, stdio: 'inherit' });
+    const output = execSync('helm lint .', { cwd: path, encoding: 'utf8' });
+    console.error(output);
     report.push({ name, path, result: 'ok' });
   } catch {
     success = false;

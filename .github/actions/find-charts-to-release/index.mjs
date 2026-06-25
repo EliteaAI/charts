@@ -41,7 +41,7 @@ for (const chart of charts) {
     remoteVersion = match?.[1]?.trim() || null;
   } catch (err) {
     const stderr = err.stderr?.toString() || '';
-    if (stderr.includes('manifest') || stderr.includes('not found')) {
+    if (stderr.includes('manifest') || stderr.includes('not found') || stderr.includes('name unknown')) {
       console.error(`Chart ${name} not found in registry (new chart)`);
     } else {
       console.error(`Error retrieving remote chart for ${name}: ${stderr}`);
