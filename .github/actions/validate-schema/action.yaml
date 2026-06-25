@@ -1,0 +1,17 @@
+name: Validate Schema
+description: Validate values.yaml files against values.schema.json
+inputs:
+  charts_json:
+    description: JSON array of charts (from list-charts)
+    required: true
+outputs:
+  success:
+    description: Whether all validations passed
+    value: ${{ steps.validate.outputs.success }}
+runs:
+  using: "composite"
+  steps:
+    - name: Validate schemas
+      id: validate
+      shell: bash
+      run: node "${{ github.action_path }}/index.mjs" '${{ inputs.charts_json }}' >> "$GITHUB_OUTPUT"

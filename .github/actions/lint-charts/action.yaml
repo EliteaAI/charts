@@ -1,0 +1,24 @@
+name: Lint Charts
+description: Lint charts using helm lint and template
+inputs:
+  charts_json:
+    description: JSON array of charts (from list-charts)
+    required: true
+  fail_fast:
+    description: Fail on first lint error
+    required: false
+    default: "true"
+outputs:
+  success:
+    description: Whether all charts passed linting
+    value: ${{ steps.lint.outputs.success }}
+  report:
+    description: JSON array of lint results
+    value: ${{ steps.lint.outputs.report }}
+runs:
+  using: "composite"
+  steps:
+    - name: Lint charts
+      id: lint
+      shell: bash
+      run: node "${{ github.action_path }}/index.mjs" '${{ inputs.charts_json }}' '${{ inputs.fail_fast }}' >> "$GITHUB_OUTPUT"

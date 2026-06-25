@@ -1,0 +1,21 @@
+{{- if ne .Values.enabled false }}
+{{- $storage := default (dict) .Values.storage -}}
+{{- if and $storage.enabled (not $storage.existingClaim) }}
+{{- $fullName := include "common.fullname" . -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ default "ReadWriteOnce" $storage.accessMode }}
+  resources:
+    requests:
+      storage: {{ default "10Gi" $storage.size }}
+{{- with $storage.class }}
+  storageClassName: {{ . }}
+{{- end }}
+{{- end }}
+{{- end }}

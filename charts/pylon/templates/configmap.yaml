@@ -1,0 +1,19 @@
+{{- if ne .Values.enabled false }}
+{{- if or .Values.configRefs .Values.configData }}
+{{- $fullName := include "common.fullname" . -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+data:
+  {{- /* Static data values */}}
+  {{- range $key, $value := .Values.configData }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- range $key, $ref := .Values.configRefs }}
+  {{ $ref.key }}: ""
+  {{- end }}
+{{- end }}
+{{- end }}

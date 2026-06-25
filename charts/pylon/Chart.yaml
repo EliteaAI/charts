@@ -1,0 +1,13 @@
+apiVersion: v2
+name: pylon
+description: Pylon service helm chart
+type: application
+version: 1.0.0
+appVersion: "1.2.27"
+maintainers:
+  - name: Alexander Kharkevich
+    email: alex@kharkevich.org
+dependencies:
+  - name: common
+    version: "2.3.0"
+    repository: "oci://ghcr.io/technicaldomain/helm"

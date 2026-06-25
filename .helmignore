@@ -1,0 +1,8 @@
+# Patterns to ignore when building charts.
+.git
+.gitignore
+.DS_Store
+*.md
+*.txt
+*.tar.gz
+*.tgz

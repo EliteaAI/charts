@@ -1,0 +1,24 @@
+name: Find Charts to Release
+description: Compare local chart versions with remote (OCI) versions
+inputs:
+  charts_json:
+    description: JSON array of charts (from list-charts)
+    required: true
+  registry:
+    description: OCI registry root (e.g. ghcr.io/org/helm)
+    required: false
+    default: "ghcr.io/${{ github.repository_owner }}/helm"
+outputs:
+  to_release:
+    description: JSON array of charts that need to be released
+    value: ${{ steps.find.outputs.to_release }}
+  release_needed:
+    description: Whether any charts need to be released
+    value: ${{ steps.find.outputs.release_needed }}
+runs:
+  using: composite
+  steps:
+    - name: Find charts to release
+      id: find
+      shell: bash
+      run: node "${{ github.action_path }}/index.mjs" '${{ inputs.charts_json }}' '${{ inputs.registry }}' >> "$GITHUB_OUTPUT"

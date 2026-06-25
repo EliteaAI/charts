@@ -1,0 +1,69 @@
+name: validate
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  list-charts:
+    runs-on: ubuntu-latest
+    outputs:
+      charts: ${{ steps.list.outputs.charts }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: List charts
+        id: list
+        uses: ./.github/actions/list-charts
+        with:
+          charts_dir: charts
+
+  lint:
+    needs: list-charts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: azure/setup-helm@v5
+
+      - name: Lint charts
+        id: lint
+        uses: ./.github/actions/lint-charts
+        with:
+          charts_json: ${{ needs.list-charts.outputs.charts }}
+          fail_fast: "true"
+
+      - name: Check lint result
+        run: |
+          if [ "${{ steps.lint.outputs.success }}" != "true" ]; then
+            echo "Lint failed" >&2
+            exit 1
+          fi
+
+  schema-validate:
+    needs: list-charts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: azure/setup-helm@v5
+
+      - name: Install helm-values-schema-json plugin
+        run: helm plugin install https://github.com/losisin/helm-values-schema-json
+
+      - name: Validate schemas
+        uses: ./.github/actions/validate-schema
+        with:
+          charts_json: ${{ needs.list-charts.outputs.charts }}

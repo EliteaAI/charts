@@ -1,0 +1,18 @@
+name: List Charts
+description: Enumerate charts in charts/ and output JSON array of {name, path, version}
+inputs:
+  charts_dir:
+    description: Directory containing charts
+    required: false
+    default: "charts"
+outputs:
+  charts:
+    description: JSON array of charts with name, path, version
+    value: ${{ steps.list.outputs.charts }}
+runs:
+  using: "composite"
+  steps:
+    - name: List charts
+      id: list
+      shell: bash
+      run: node "${{ github.action_path }}/index.mjs" "${{ inputs.charts_dir }}" >> "$GITHUB_OUTPUT"

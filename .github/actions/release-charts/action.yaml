@@ -1,0 +1,34 @@
+name: Release Charts
+description: Package, push, and sign charts to OCI registry
+inputs:
+  to_release_json:
+    description: JSON array from find-charts-to-release
+    required: true
+  registry:
+    description: OCI registry (e.g. ghcr.io/org/helm)
+    required: false
+    default: "ghcr.io/${{ github.repository_owner }}/helm"
+outputs:
+  report:
+    description: JSON array of release results
+    value: ${{ steps.release.outputs.report }}
+runs:
+  using: composite
+  steps:
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@v4.1.2
+
+    - name: Install ORAS
+      shell: bash
+      run: |
+        curl -LO https://github.com/oras-project/oras/releases/download/v1.3.2/oras_1.3.2_linux_amd64.tar.gz
+        tar -xzf oras_1.3.2_linux_amd64.tar.gz
+        sudo mv oras /usr/local/bin/oras
+
+    - name: Release charts
+      id: release
+      shell: bash
+      env:
+        TO_RELEASE: '${{ inputs.to_release_json }}'
+        REGISTRY: '${{ inputs.registry }}'
+      run: node "${{ github.action_path }}/index.mjs" >> "$GITHUB_OUTPUT"
