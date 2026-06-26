@@ -12,8 +12,11 @@ data:
   {{- range $key, $value := .Values.configData }}
   {{ $key }}: {{ $value | quote }}
   {{- end }}
+  {{- /* Placeholder entries for configRefs not in configData */}}
   {{- range $key, $ref := .Values.configRefs }}
+  {{- if not (hasKey $.Values.configData $ref.key) }}
   {{ $ref.key }}: ""
+  {{- end }}
   {{- end }}
 {{- end }}
 {{- end }}
