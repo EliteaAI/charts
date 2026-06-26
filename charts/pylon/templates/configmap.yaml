@@ -1,5 +1,5 @@
 {{- if ne .Values.enabled false }}
-{{- if or .Values.configRefs .Values.configData }}
+{{- if or .Values.configRefs .Values.configData .Values.config.files }}
 {{- $fullName := include "common.fullname" . -}}
 apiVersion: v1
 kind: ConfigMap
@@ -16,6 +16,13 @@ data:
   {{- range $key, $ref := .Values.configRefs }}
   {{- if and $ref (not (hasKey $.Values.configData $ref.key)) }}
   {{ $ref.key }}: ""
+  {{- end }}
+  {{- end }}
+  {{- /* Config files */}}
+  {{- with .Values.config.files }}
+  {{- range $name, $content := . }}
+  {{ $name }}: |
+{{ $content | indent 4 }}
   {{- end }}
   {{- end }}
 {{- end }}
