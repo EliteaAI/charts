@@ -1,0 +1,170 @@
+# pylon-main - Core Platform APIs
+# Usage: helm install pylon-main ./pylon -f values/main.yaml
+
+fullnameOverride: pylon-main
+nameOverride: pylon-main
+
+image:
+  repository: ghcr.io/eliteaai/pylon
+  pullPolicy: Always
+
+strategy:
+  type: Recreate
+
+podSecurityContext:
+  runAsNonRoot: true
+  fsGroup: 33
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsUser: 33
+  runAsGroup: 33
+  capabilities:
+    drop: ["ALL"]
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 40
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: http
+  initialDelaySeconds: 40
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+resources:
+  requests:
+    cpu: "1000m"
+    memory: "2Gi"
+  limits:
+    cpu: "2000m"
+    memory: "4Gi"
+
+storage:
+  enabled: true
+  size: 50Gi
+  mountPath: /data
+
+tmpStorage:
+  enabled: true
+  mountPath: /tmp
+  sizeLimit: 20Gi
+
+config:
+  enabled: true
+  mountPath: /data/configs
+
+serviceAccount:
+  create: true
+
+initContainers:
+  - name: wait-auth
+    image: curlimages/curl:8.6.0
+    command: ["sh", "-c"]
+    args:
+      - |
+        until curl -fsS http://pylon-auth:8080/healthz; do sleep 3; done
+  - name: wait-postgres
+    image: postgres:16-alpine
+    command: ["sh", "-c"]
+    args:
+      - |
+        until pg_isready -h $POSTGRES_HOST -p $POSTGRES_PORT; do sleep 3; done
+    envFrom:
+      - configMapRef:
+          name: pylon-main
+  - name: wait-redis
+    image: redis:7-alpine
+    command: ["sh", "-c"]
+    args:
+      - |
+        until redis-cli -h $REDIS_HOST -p $REDIS_PORT ping; do sleep 3; done
+    envFrom:
+      - configMapRef:
+          name: pylon-main
+
+env:
+  PYLON_WEB_RUNTIME: gevent
+  PYLON_CONFIG_SEED: file:/data/pylon.yml
+  NAME: pylon-main-core
+
+secretRefs:
+  postgres_user:
+    secretName: ""
+    key: postgres_user
+  postgres_password:
+    secretName: ""
+    key: postgres_password
+  redis_password:
+    secretName: ""
+    key: redis_password
+  application_main_secret_key:
+    secretName: ""
+    key: application_main_secret_key
+  secrets_master_key:
+    secretName: ""
+    key: secrets_master_key
+  rpc_hmac_key:
+    secretName: ""
+    key: rpc_hmac_key
+  event_hmac_key:
+    secretName: ""
+    key: event_hmac_key
+  indexer_hmac_key:
+    secretName: ""
+    key: indexer_hmac_key
+  exposure_hmac_key:
+    secretName: ""
+    key: exposure_hmac_key
+  mesh_hmac_key:
+    secretName: ""
+    key: mesh_hmac_key
+  license_token:
+    secretName: ""
+    key: license_token
+
+configRefs:
+  app_proto:
+    configMapName: ""
+    key: app_proto
+  app_host:
+    configMapName: ""
+    key: app_host
+  cookies_secure:
+    configMapName: ""
+    key: cookies_secure
+  cookies_lifetime:
+    configMapName: ""
+    key: cookies_lifetime
+  postgres_host:
+    configMapName: ""
+    key: postgres_host
+  postgres_port:
+    configMapName: ""
+    key: postgres_port
+  postgres_db:
+    configMapName: ""
+    key: postgres_db
+  redis_host:
+    configMapName: ""
+    key: redis_host
+  redis_port:
+    configMapName: ""
+    key: redis_port
+  redis_ssl:
+    configMapName: ""
+    key: redis_ssl
+  ai_project_allowed_domains:
+    configMapName: ""
+    key: ai_project_allowed_domains

@@ -1,0 +1,90 @@
+# pylon-inventory - Inventory Plugin (optional)
+# Usage: helm install pylon-inventory ./pylon -f values/inventory.yaml
+
+# Disabled by default - enable in environment values
+enabled: false
+
+fullnameOverride: pylon-inventory
+nameOverride: pylon-inventory
+
+image:
+  repository: ghcr.io/eliteaai/pylon
+  pullPolicy: Always
+
+strategy:
+  type: Recreate
+
+podSecurityContext:
+  runAsNonRoot: true
+  fsGroup: 33
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsUser: 33
+  runAsGroup: 33
+  capabilities:
+    drop: ["ALL"]
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
+
+storage:
+  enabled: true
+  size: 10Gi
+  mountPath: /data
+
+tmpStorage:
+  enabled: true
+  mountPath: /tmp
+  sizeLimit: 5Gi
+
+config:
+  enabled: true
+  mountPath: /data/configs
+
+serviceAccount:
+  create: true
+
+# RBAC for job management
+rbac:
+  create: true
+jobs:
+  enabled: true
+
+# Only waits for Redis (no postgres dependency)
+initContainers:
+  - name: wait-redis
+    image: redis:7-alpine
+    command: ["sh", "-c"]
+    args:
+      - |
+        until redis-cli -h $REDIS_HOST -p $REDIS_PORT ping; do sleep 3; done
+    envFrom:
+      - configMapRef:
+          name: pylon-inventory
+
+env:
+  PYLON_WEB_RUNTIME: gevent
+  PYLON_CONFIG_SEED: file:/data/pylon.yml
+  NAME: pylon-inventory
+
+secretRefs:
+  redis_password:
+    secretName: ""
+    key: redis_password
+
+configRefs:
+  redis_host:
+    configMapName: ""
+    key: redis_host
+  redis_port:
+    configMapName: ""
+    key: redis_port

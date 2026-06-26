@@ -1,0 +1,147 @@
+# pylon-auth - Authentication Service
+# Usage: helm install pylon-auth ./pylon -f values/auth.yaml
+
+fullnameOverride: pylon-auth
+nameOverride: pylon-auth
+
+image:
+  repository: ghcr.io/eliteaai/pylon
+  pullPolicy: Always
+
+strategy:
+  type: Recreate
+
+podSecurityContext:
+  runAsNonRoot: true
+  fsGroup: 33
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsUser: 33
+  runAsGroup: 33
+  capabilities:
+    drop: ["ALL"]
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 40
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: http
+  initialDelaySeconds: 40
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
+
+storage:
+  enabled: true
+  size: 10Gi
+  mountPath: /data
+
+tmpStorage:
+  enabled: true
+  mountPath: /tmp
+  sizeLimit: 5Gi
+
+config:
+  enabled: true
+  mountPath: /data/configs
+
+serviceAccount:
+  create: true
+
+# Auth doesn't wait for itself
+initContainers:
+  - name: wait-postgres
+    image: postgres:16-alpine
+    command: ["sh", "-c"]
+    args:
+      - |
+        until pg_isready -h $POSTGRES_HOST -p $POSTGRES_PORT; do sleep 3; done
+    envFrom:
+      - configMapRef:
+          name: pylon-auth
+  - name: wait-redis
+    image: redis:7-alpine
+    command: ["sh", "-c"]
+    args:
+      - |
+        until redis-cli -h $REDIS_HOST -p $REDIS_PORT ping; do sleep 3; done
+    envFrom:
+      - configMapRef:
+          name: pylon-auth
+
+env:
+  PYLON_WEB_RUNTIME: gevent
+  PYLON_CONFIG_SEED: file:/data/pylon.yml
+  NAME: pylon-auth
+
+secretRefs:
+  postgres_user:
+    secretName: ""
+    key: postgres_user
+  postgres_password:
+    secretName: ""
+    key: postgres_password
+  redis_password:
+    secretName: ""
+    key: redis_password
+  application_main_secret_key:
+    secretName: ""
+    key: application_main_secret_key
+  secrets_master_key:
+    secretName: ""
+    key: secrets_master_key
+
+configRefs:
+  app_proto:
+    configMapName: ""
+    key: app_proto
+  app_host:
+    configMapName: ""
+    key: app_host
+  cookies_secure:
+    configMapName: ""
+    key: cookies_secure
+  cookies_lifetime:
+    configMapName: ""
+    key: cookies_lifetime
+  postgres_host:
+    configMapName: ""
+    key: postgres_host
+  postgres_port:
+    configMapName: ""
+    key: postgres_port
+  postgres_db:
+    configMapName: ""
+    key: postgres_db
+  redis_host:
+    configMapName: ""
+    key: redis_host
+  redis_port:
+    configMapName: ""
+    key: redis_port
+  redis_ssl:
+    configMapName: ""
+    key: redis_ssl
+  sso_provider:
+    configMapName: ""
+    key: sso_provider

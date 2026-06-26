@@ -1,0 +1,75 @@
+# pylon-imagegen - Image Generation Plugin (optional)
+# Usage: helm install pylon-imagegen ./pylon -f values/imagegen.yaml
+
+# Disabled by default - enable in environment values
+enabled: false
+
+fullnameOverride: pylon-imagegen
+nameOverride: pylon-imagegen
+
+image:
+  repository: ghcr.io/eliteaai/pylon
+  pullPolicy: Always
+
+strategy:
+  type: Recreate
+
+podSecurityContext:
+  runAsNonRoot: true
+  fsGroup: 33
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsUser: 33
+  runAsGroup: 33
+  capabilities:
+    drop: ["ALL"]
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+  limits:
+    cpu: "1000m"
+    memory: "2Gi"
+
+storage:
+  enabled: true
+  size: 10Gi
+  mountPath: /data
+
+tmpStorage:
+  enabled: true
+  mountPath: /tmp
+  sizeLimit: 5Gi
+
+config:
+  enabled: true
+  mountPath: /data/configs
+
+serviceAccount:
+  create: true
+
+# No init containers needed
+initContainers: []
+
+env:
+  PYLON_WEB_RUNTIME: gevent
+  PYLON_CONFIG_SEED: file:/data/pylon.yml
+  NAME: pylon-imagegen
+
+secretRefs:
+  redis_password:
+    secretName: ""
+    key: redis_password
+
+configRefs:
+  redis_host:
+    configMapName: ""
+    key: redis_host
+  redis_port:
+    configMapName: ""
+    key: redis_port
