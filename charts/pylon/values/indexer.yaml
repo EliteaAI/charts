@@ -10,6 +10,7 @@ image:
 
 strategy:
   type: Recreate
+  rollingUpdate: null
 
 podSecurityContext:
   runAsNonRoot: true
