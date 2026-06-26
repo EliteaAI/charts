@@ -14,7 +14,7 @@ data:
   {{- end }}
   {{- /* Placeholder entries for configRefs not in configData */}}
   {{- range $key, $ref := .Values.configRefs }}
-  {{- if not (hasKey $.Values.configData $ref.key) }}
+  {{- if and $ref (not (hasKey $.Values.configData $ref.key)) }}
   {{ $ref.key }}: ""
   {{- end }}
   {{- end }}

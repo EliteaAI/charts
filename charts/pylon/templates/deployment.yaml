@@ -78,18 +78,22 @@ spec:
               value: {{ $val | quote }}
             {{- end }}
             {{- range $key, $ref := .Values.configRefs }}
+            {{- if $ref }}
             - name: {{ $key | upper }}
               valueFrom:
                 configMapKeyRef:
                   name: {{ $ref.configMapName | default $fullName }}
                   key: {{ $ref.key }}
             {{- end }}
+            {{- end }}
             {{- range $key, $ref := .Values.secretRefs }}
+            {{- if $ref }}
             - name: {{ $key | upper }}
               valueFrom:
                 secretKeyRef:
                   name: {{ $ref.secretName | default (printf "%s-secret" $fullName) }}
                   key: {{ $ref.key }}
+            {{- end }}
             {{- end }}
           volumeMounts:
             {{- with .Values.storage }}

@@ -230,28 +230,38 @@
     "configRefs": {
       "type": "object",
       "additionalProperties": {
-        "type": "object",
-        "properties": {
-          "configMapName": { "type": "string" },
-          "key": { "type": "string" }
-        },
-        "required": ["key"],
-        "additionalProperties": false
+        "oneOf": [
+          { "type": "null" },
+          {
+            "type": "object",
+            "properties": {
+              "configMapName": { "type": "string" },
+              "key": { "type": "string" }
+            },
+            "required": ["key"],
+            "additionalProperties": false
+          }
+        ]
       },
-      "description": "ConfigMap placeholder keys"
+      "description": "ConfigMap placeholder keys (null to disable)"
     },
     "secretRefs": {
       "type": "object",
       "additionalProperties": {
-        "type": "object",
-        "properties": {
-          "secretName": { "type": "string" },
-          "key": { "type": "string" }
-        },
-        "required": ["key"],
-        "additionalProperties": false
+        "oneOf": [
+          { "type": "null" },
+          {
+            "type": "object",
+            "properties": {
+              "secretName": { "type": "string" },
+              "key": { "type": "string" }
+            },
+            "required": ["key"],
+            "additionalProperties": false
+          }
+        ]
       },
-      "description": "Secret references for environment variables"
+      "description": "Secret references for environment variables (null to disable)"
     },
     "imagePullSecrets": { "type": "array", "items": { "type": "object" } },
     "command": { "type": "array", "items": { "type": "string" } },
